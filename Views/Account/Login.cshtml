@@ -1,0 +1,156 @@
+﻿@model NetKM.Controllers.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <style>
+        .login-container {
+            max-width: 450px;
+            margin: 60px auto;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+            .login-header h1 {
+                color: #1877f2;
+                font-size: 48px;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+
+            .login-header p {
+                color: #606770;
+                font-size: 16px;
+            }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                color: #1c1e21;
+                font-weight: 500;
+            }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+            .form-control:focus {
+                outline: none;
+                border-color: #1877f2;
+            }
+
+        .text-danger {
+            color: #d93025;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+            .btn-login:hover {
+                background: #166fe5;
+            }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #8a8d91;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+            .register-link a {
+                color: #1877f2;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+                .register-link a:hover {
+                    text-decoration: underline;
+                }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 15px 0;
+        }
+    </style>
+}
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h1>NetKM</h1>
+            <p>Connect with students and teachers</p>
+        </div>
+
+        <form method="post" asp-action="Login" asp-controller="Account">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Email">Email Address</label>
+                <input asp-for="Email" class="form-control" placeholder="Enter your email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password">Password</label>
+                <input asp-for="Password" class="form-control" type="password" placeholder="Enter your password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="checkbox-group">
+                <input asp-for="RememberMe" type="checkbox" id="rememberMe" />
+                <label for="rememberMe" style="margin: 0">Remember me</label>
+            </div>
+
+            <button type="submit" class="btn-login">Log In</button>
+
+            <div class="divider">or</div>
+
+            <div class="register-link">
+                Don't have an account? <a href="/Account/Register">Sign up</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

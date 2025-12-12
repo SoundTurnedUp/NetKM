@@ -1,0 +1,314 @@
+﻿@model List<User>
+@{
+    ViewData["Title"] = "Friends";
+}
+
+@section Styles {
+    <style>
+        .friends-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+            .page-header h1 {
+                font-size: 28px;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+
+            .page-header p {
+                color: #65676b;
+                font-size: 15px;
+            }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e4e6eb;
+        }
+
+        .friend-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+            .friend-item:hover {
+                background: #f2f2f2;
+            }
+
+        .friend-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+        }
+
+        .friend-info {
+            flex: 1;
+        }
+
+        .friend-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+            .friend-name a {
+                color: #1c1e21;
+                text-decoration: none;
+            }
+
+                .friend-name a:hover {
+                    text-decoration: underline;
+                }
+
+        .friend-role {
+            font-size: 14px;
+            color: #65676b;
+        }
+
+        .friend-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #1877f2;
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: #166fe5;
+            }
+
+        .btn-secondary {
+            background: #e4e6eb;
+            color: #050505;
+        }
+
+            .btn-secondary:hover {
+                background: #d8dadf;
+            }
+
+        .btn-success {
+            background: #42b72a;
+            color: white;
+        }
+
+            .btn-success:hover {
+                background: #36a420;
+            }
+
+        .btn-danger {
+            background: #e4e6eb;
+            color: #050505;
+        }
+
+            .btn-danger:hover {
+                background: #d8dadf;
+            }
+
+        .request-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid #e4e6eb;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: #f7f8fa;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #65676b;
+        }
+
+            .empty-state h3 {
+                font-size: 20px;
+                margin-bottom: 8px;
+            }
+
+        .search-box {
+            margin-bottom: 16px;
+        }
+
+            .search-box input {
+                width: 100%;
+                padding: 10px 16px;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                font-size: 15px;
+            }
+
+                .search-box input:focus {
+                    outline: none;
+                    border-color: #1877f2;
+                }
+    </style>
+}
+
+<div class="friends-container">
+    <div class="page-header">
+        <h1>Friends</h1>
+        <p>Manage your connections</p>
+    </div>
+
+    @if (ViewBag.PendingRequests != null && ViewBag.PendingRequests.Count > 0)
+    {
+        <div class="section">
+            <h2 class="section-title">Friend Requests (@ViewBag.PendingRequests.Count)</h2>
+
+            @foreach (var request in ViewBag.PendingRequests)
+            {
+                <div class="request-item">
+                    <img src="@(request.Sender.ProfilePictureURL ?? "/images/default-avatar.png")"
+                         alt="Avatar"
+                         class="friend-avatar" />
+
+                    <div class="friend-info">
+                        <div class="friend-name">
+                            <a href="/Home/Profile?userId=@request.Sender.Id">
+                                @request.Sender.FirstName @request.Sender.LastName
+                            </a>
+                        </div>
+                        <div class="friend-role">@request.Sender.Role</div>
+                    </div>
+
+                    <div class="friend-actions">
+                        <button class="btn btn-success" onclick="acceptFriendRequest('@request.RequestId')">
+                            ✓ Accept
+                        </button>
+                        <button class="btn btn-danger" onclick="declineFriendRequest('@request.RequestId')">
+                            ✕ Decline
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="section">
+        <h2 class="section-title">All Friends (@Model.Count)</h2>
+
+        <div class="search-box">
+            <input type="text"
+                   id="friendSearch"
+                   placeholder="🔍 Search friends..."
+                   onkeyup="filterFriends()" />
+        </div>
+
+        @if (Model.Count > 0)
+        {
+            <div class="friend-list" id="friendList">
+                @foreach (var friend in Model)
+                {
+                    <div class="friend-item" data-name="@friend.FirstName @friend.LastName">
+                        <img src="@(friend.ProfilePictureURL ?? "/images/default-avatar.png")"
+                             alt="Avatar"
+                             class="friend-avatar" />
+
+                        <div class="friend-info">
+                            <div class="friend-name">
+                                <a href="/Home/Profile?userId=@friend.Id">
+                                    @friend.FirstName @friend.LastName
+                                </a>
+                            </div>
+                            <div class="friend-role">@friend.Role</div>
+                        </div>
+
+                        <div class="friend-actions">
+                            <a href="/Home/Profile?userId=@friend.Id" class="btn btn-primary">
+                                View Profile
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <h3>No friends yet</h3>
+                <p>Start connecting with other students and teachers!</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function acceptFriendRequest(requestId) {
+            $.post('/Home/AcceptFriendRequest', { requestId: requestId }, function(data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Failed to accept friend request');
+                }
+            });
+        }
+
+        function declineFriendRequest(requestId) {
+            if (confirm('Are you sure you want to decline this friend request?')) {
+                $.post('/Home/DeclineFriendRequest', { requestId: requestId }, function(data) {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Failed to decline friend request');
+                    }
+                });
+            }
+        }
+
+        function filterFriends() {
+            const searchTerm = document.getElementById('friendSearch').value.toLowerCase();
+            const friendItems = document.querySelectorAll('.friend-item');
+
+            friendItems.forEach(item => {
+                const name = item.getAttribute('data-name').toLowerCase();
+                if (name.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,866 @@
+﻿@model List<Post>
+@{
+    ViewData["Title"] = "Feed";
+}
+
+@section Styles {
+    <style>
+        .feed-container {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        .create-post-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .create-post-form textarea {
+            width: 100%;
+            border: none;
+            resize: none;
+            font-size: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #f0f2f5;
+            margin-bottom: 10px;
+        }
+
+            .create-post-form textarea:focus {
+                outline: none;
+            }
+
+        .create-post-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-input-label {
+            cursor: pointer;
+            color: #65676b;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+            .file-input-label:hover {
+                background: #f2f2f2;
+            }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+
+        .post-author-info h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .post-time {
+            font-size: 13px;
+            color: #65676b;
+        }
+
+        .post-content {
+            margin-bottom: 12px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .post-image {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 12px;
+            padding-top: 8px;
+            border-top: 1px solid #e4e6eb;
+        }
+
+        .post-action-btn {
+            flex: 1;
+            padding: 8px;
+            background: none;
+            border: none;
+            color: #65676b;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+            .post-action-btn:hover {
+                background: #f2f2f2;
+            }
+
+            .post-action-btn.liked {
+                color: #1877f2;
+            }
+
+            .post-action-btn.delete-btn {
+                color: #e4405f;
+            }
+
+                .post-action-btn.delete-btn:hover {
+                    background: #ffe8ed;
+                }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+            .modal-overlay.active {
+                display: flex;
+            }
+
+        .modal-content {
+            background: white;
+            max-width: 1200px;
+            width: 90%;
+            max-height: 90vh;
+            display: flex;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+            .modal-content.text-only {
+                max-width: 800px;
+                flex-direction: column;
+            }
+
+        .modal-left {
+            flex: 1.5;
+            background: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+
+        .modal-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+
+        .modal-content.text-only .modal-right {
+            max-height: none;
+        }
+
+        .modal-header {
+            padding: 16px;
+            border-bottom: 1px solid #e4e6eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-post-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .modal-author-info h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #65676b;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+            .modal-close:hover {
+                background: #f2f2f2;
+            }
+
+        .modal-post-content {
+            padding: 24px;
+            border-bottom: 1px solid #e4e6eb;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .modal-content.text-only .modal-post-content {
+            padding: 32px;
+            background: #fafafa;
+            border-bottom: 2px solid #e4e6eb;
+            min-height: 120px;
+        }
+
+        .modal-post-content h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1c1e21;
+        }
+
+        .modal-post-content p {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .modal-comments {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .modal-content.text-only .modal-comments {
+            padding: 24px 32px;
+            max-height: none;
+        }
+
+        .modal-comments-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e4e6eb;
+            display: none;
+        }
+
+        .modal-content.text-only .modal-comments-header {
+            display: block;
+        }
+
+        .modal-comment {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-content.text-only .modal-comment {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e4e6eb;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .modal-comment-content {
+            flex: 1;
+        }
+
+        .modal-comment-author {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .modal-comment-text {
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .modal-comment-time {
+            font-size: 12px;
+            color: #65676b;
+        }
+
+        .modal-comment-delete {
+            background: none;
+            border: none;
+            color: #e4405f;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+            .modal-comment-delete:hover {
+                background: #ffe8ed;
+            }
+
+        .modal-actions {
+            padding: 12px 16px;
+            border-top: 1px solid #e4e6eb;
+            background: white;
+        }
+
+        .modal-content.text-only .modal-actions {
+            padding: 20px 32px;
+            border-top: 2px solid #e4e6eb;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .modal-action-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 8px;
+            padding: 4px 0;
+        }
+
+        .modal-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 4px;
+        }
+
+        .modal-like-count {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .modal-comment-form {
+            display: flex;
+            gap: 8px;
+            border-top: 1px solid #e4e6eb;
+            padding-top: 12px;
+        }
+
+        .modal-comment-input {
+            flex: 1;
+            border: none;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .modal-comment-submit {
+            background: none;
+            border: none;
+            color: #1877f2;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+            .modal-comment-submit:disabled {
+                color: #b4d5ff;
+                cursor: default;
+            }
+
+        .modal-empty-comments {
+            text-align: center;
+            padding: 40px;
+            color: #65676b;
+        }
+
+        .modal-content.text-only .modal-empty-comments {
+            padding: 60px 40px;
+        }
+
+        .modal-content.text-only .modal-comment-form {
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .modal-content.text-only .modal-comment-input {
+            padding: 12px;
+            background: white;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+        }
+
+        .comments-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e4e6eb;
+        }
+
+        .comment {
+            background: #f0f2f5;
+            padding: 8px 12px;
+            border-radius: 18px;
+            margin-bottom: 8px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+
+        .comment-text {
+            font-size: 14px;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+            .comment-form input {
+                flex: 1;
+                padding: 8px 12px;
+                border: 1px solid #ccc;
+                border-radius: 18px;
+                font-size: 14px;
+            }
+
+            .comment-form button {
+                padding: 8px 16px;
+                background: #1877f2;
+                color: white;
+                border: none;
+                border-radius: 18px;
+                cursor: pointer;
+            }
+
+        .empty-feed {
+            text-align: center;
+            padding: 60px 20px;
+            color: #65676b;
+        }
+
+            .empty-feed h2 {
+                font-size: 24px;
+                margin-bottom: 10px;
+            }
+    </style>
+}
+
+<div class="feed-container">
+    <div class="create-post-card">
+        <form method="post" action="/Home/CreatePost" enctype="multipart/form-data" class="create-post-form">
+            @Html.AntiForgeryToken()
+            <textarea name="content" placeholder="What's on your mind?" rows="3" maxlength="2000"></textarea>
+            <div class="create-post-actions">
+                <label for="mediaUpload" class="file-input-label">
+                    📷 Photo/Video
+                </label>
+                <input type="file" id="mediaUpload" name="media" accept="image/*,.pdf" />
+                <button type="submit" class="btn btn-primary">Post</button>
+            </div>
+        </form>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="empty-feed">
+            <h2>No posts yet</h2>
+            <p>Be the first to share something!</p>
+        </div>
+    }
+    else
+    {
+        @foreach (var post in Model)
+        {
+            <div class="post-card">
+                <div class="post-header">
+                    <img src="@(post.Author.ProfilePictureURL ?? "/images/default-avatar.png")"
+                         alt="Avatar"
+                         class="post-avatar" />
+                    <div class="post-author-info">
+                        <h3>@post.Author.FirstName @post.Author.LastName</h3>
+                        <span class="post-time">@post.CreatedAt.ToString("MMM dd, yyyy")</span>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(post.Content))
+                {
+                    <div class="post-content">@post.Content</div>
+                }
+
+                @if (!string.IsNullOrEmpty(post.MediaURL))
+                {
+                    <img src="@post.MediaURL" alt="Post media" class="post-image" />
+                }
+
+                <div class="post-actions">
+                    <button class="post-action-btn like-btn"
+                            data-post-id="@post.PostId"
+                            onclick="likePost('@post.PostId')">
+                        👍 Like (<span class="like-count">@post.Likes.Count</span>)
+                    </button>
+                    <button class="post-action-btn" onclick="openPostModal('@post.PostId')">
+                        💬 Comment (@post.Comments.Count)
+                    </button>
+                    @if (ViewBag.UserId == post.AuthorId)
+                    {
+                        <button class="post-action-btn delete-btn" onclick="deletePost('@post.PostId')">
+                            🗑️ Delete
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<!-- Post Modal -->
+<div class="modal-overlay" id="postModal">
+    <div class="modal-content" id="modalContentContainer">
+        <div class="modal-left" id="modalLeft" style="display:none;">
+            <img src="" alt="Post" class="modal-image" id="modalImage" />
+        </div>
+        <div class="modal-right">
+            <div class="modal-header">
+                <div class="modal-post-author">
+                    <img src="" alt="Avatar" class="modal-avatar" id="modalAuthorAvatar" />
+                    <div class="modal-author-info">
+                        <h3 id="modalAuthorName"></h3>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closePostModal()">×</button>
+            </div>
+
+            <div class="modal-post-content" id="modalPostContent"></div>
+
+            <div class="modal-comments" id="modalCommentsSection">
+                <h3 class="modal-comments-header" id="modalCommentsHeader">Comments</h3>
+                <div class="modal-empty-comments" id="modalEmptyComments" style="display:none;">
+                    <p>No comments yet</p>
+                    <p style="font-size: 14px; margin-top: 8px;">Be the first to comment!</p>
+                </div>
+                <div id="modalCommentsList"></div>
+            </div>
+
+            <div class="modal-actions">
+                <div class="modal-action-buttons">
+                    <button class="modal-action-btn" id="modalLikeBtn" onclick="likePostFromModal()">
+                        👍
+                    </button>
+                    <button class="modal-action-btn" onclick="focusCommentInput()">
+                        💬
+                    </button>
+                </div>
+                <div class="modal-like-count" id="modalLikeCount"></div>
+                <div class="modal-comment-form">
+                    <input type="text"
+                           class="modal-comment-input"
+                           id="modalCommentInput"
+                           placeholder="Add a comment..."
+                           onkeypress="handleCommentKeyPress(event)" />
+                    <button class="modal-comment-submit"
+                            id="modalCommentSubmit"
+                            onclick="submitModalComment()"
+                            disabled>
+                        Post
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentPostId = null;
+        let currentUserId = '@ViewBag.UserId';
+
+        // Enable/disable comment submit button based on input
+        document.addEventListener('DOMContentLoaded', function() {
+            const commentInput = document.getElementById('modalCommentInput');
+            const submitBtn = document.getElementById('modalCommentSubmit');
+
+            commentInput.addEventListener('input', function() {
+                submitBtn.disabled = this.value.trim().length === 0;
+            });
+        });
+        function likePost(postId) {
+            $.post('/Home/LikePost', { postId: postId }, function(data) {
+                if (data.success) {
+                    const btn = $(`button[data-post-id="${postId}"]`);
+                    btn.find('.like-count').text(data.likeCount);
+                    if (data.hasLiked) {
+                        btn.addClass('liked');
+                    } else {
+                        btn.removeClass('liked');
+                    }
+
+                    // Update modal if open
+                    if (currentPostId === postId) {
+                        updateModalLikeCount(data.likeCount);
+                    }
+                }
+            });
+        }
+
+        function deletePost(postId) {
+            if (!confirm('Are you sure you want to delete this post?')) {
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/Home/DeletePost';
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '__RequestVerificationToken';
+            tokenInput.value = token;
+
+            const postIdInput = document.createElement('input');
+            postIdInput.type = 'hidden';
+            postIdInput.name = 'postId';
+            postIdInput.value = postId;
+
+            form.appendChild(tokenInput);
+            form.appendChild(postIdInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function openPostModal(postId) {
+            currentPostId = postId;
+
+            // Fetch post details
+            $.get(`/Home/GetPost?postId=${postId}`, function(post) {
+                const modalContainer = $('#modalContentContainer');
+
+                // Check if post has media
+                const hasMedia = post.mediaUrl && post.mediaUrl.trim() !== '';
+
+                if (hasMedia) {
+                    // Instagram-style layout with image on left
+                    modalContainer.removeClass('text-only');
+                    $('#modalLeft').show();
+                    $('#modalImage').attr('src', post.mediaUrl);
+                } else {
+                    // StackOverflow-style layout for text posts
+                    modalContainer.addClass('text-only');
+                    $('#modalLeft').hide();
+                }
+
+                // Set author info
+                $('#modalAuthorAvatar').attr('src', post.authorAvatar || '/images/default-avatar.png');
+                $('#modalAuthorName').text(post.authorName);
+
+                // Set post content
+                if (post.content) {
+                    if (hasMedia) {
+                        $('#modalPostContent').html(`<p>${post.content}</p>`).show();
+                    } else {
+                        // For text-only posts, make it more prominent
+                        $('#modalPostContent').html(`<p>${post.content}</p>`).show();
+                    }
+                } else {
+                    $('#modalPostContent').hide();
+                }
+
+                // Set like count
+                updateModalLikeCount(post.likeCount);
+
+                // Update comments header count
+                $('#modalCommentsHeader').text(`Comments (${post.commentCount})`);
+
+                // Load comments
+                loadModalComments(postId);
+
+                // Show modal
+                $('#postModal').addClass('active');
+
+                // Prevent body scroll
+                $('body').css('overflow', 'hidden');
+            });
+        }
+
+        function closePostModal() {
+            $('#postModal').removeClass('active');
+            $('body').css('overflow', 'auto');
+            currentPostId = null;
+            $('#modalCommentInput').val('');
+            $('#modalCommentSubmit').prop('disabled', true);
+        }
+
+        function loadModalComments(postId) {
+            $.get(`/Home/GetComments?postId=${postId}`, function(comments) {
+                const commentsList = $('#modalCommentsList');
+                commentsList.empty();
+
+                // Update comments header
+                $('#modalCommentsHeader').text(`Comments (${comments.length})`);
+
+                if (comments.length === 0) {
+                    $('#modalEmptyComments').show();
+                } else {
+                    $('#modalEmptyComments').hide();
+
+                    comments.forEach(comment => {
+                        const deleteBtn = comment.canDelete
+                            ? `<button class="modal-comment-delete" onclick="deleteComment('${comment.commentId}')">Delete</button>`
+                            : '';
+
+                        const commentHtml = `
+                            <div class="modal-comment" id="comment-${comment.commentId}">
+                                <img src="${comment.authorAvatar || '/images/default-avatar.png'}"
+                                     class="comment-avatar" />
+                                <div class="modal-comment-content">
+                                    <div class="modal-comment-author">
+                                        ${comment.authorName}
+                                        ${deleteBtn}
+                                    </div>
+                                    <div class="modal-comment-text">${comment.content}</div>
+                                    <div class="modal-comment-time">${comment.timeAgo}</div>
+                                </div>
+                            </div>
+                        `;
+                        commentsList.append(commentHtml);
+                    });
+                }
+            });
+        }
+
+        function updateModalLikeCount(count) {
+            const text = count === 1 ? '1 like' : `${count} likes`;
+            $('#modalLikeCount').text(text);
+        }
+
+        function likePostFromModal() {
+            if (currentPostId) {
+                likePost(currentPostId);
+            }
+        }
+
+        function focusCommentInput() {
+            $('#modalCommentInput').focus();
+        }
+
+        function handleCommentKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                submitModalComment();
+            }
+        }
+
+        function submitModalComment() {
+            const content = $('#modalCommentInput').val().trim();
+            if (!content || !currentPostId) return;
+
+            $.post('/Home/AddComment', {
+                postId: currentPostId,
+                content: content,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            }, function(data) {
+                if (data.success) {
+                    // Reload comments
+                    loadModalComments(currentPostId);
+
+                    // Clear input
+                    $('#modalCommentInput').val('');
+                    $('#modalCommentSubmit').prop('disabled', true);
+
+                    // Update comment count in feed
+                    const commentBtn = $(`.post-card button[onclick="openPostModal('${currentPostId}')"]`);
+                    const currentCount = parseInt(commentBtn.text().match(/\d+/)[0]);
+                    commentBtn.html(`💬 Comment (${currentCount + 1})`);
+                }
+            });
+        }
+
+        function deleteComment(commentId) {
+            if (!confirm('Are you sure you want to delete this comment?')) {
+                return;
+            }
+
+            $.post('/Home/DeleteComment', {
+                commentId: commentId,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            }, function(data) {
+                if (data.success) {
+                    $(`#comment-${commentId}`).fadeOut(300, function() {
+                        $(this).remove();
+
+                        // Check if comments are empty now
+                        if ($('#modalCommentsList .modal-comment').length === 0) {
+                            $('#modalEmptyComments').show();
+                        }
+
+                        // Update comment count in feed
+                        const commentBtn = $(`.post-card button[onclick="openPostModal('${currentPostId}')"]`);
+                        const currentCount = parseInt(commentBtn.text().match(/\d+/)[0]);
+                        commentBtn.html(`💬 Comment (${Math.max(0, currentCount - 1)})`);
+                    });
+                } else {
+                    alert('Failed to delete comment');
+                }
+            });
+        }
+
+        // Close modal when clicking outside
+        $(document).on('click', function(e) {
+            if ($(e.target).hasClass('modal-overlay')) {
+                closePostModal();
+            }
+        });
+
+        // Close modal on ESC key
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && currentPostId) {
+                closePostModal();
+            }
+        });
+    </script>
+}

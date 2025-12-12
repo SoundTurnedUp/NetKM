@@ -1,0 +1,384 @@
+﻿@model User
+@{
+    ViewData["Title"] = $"{Model.FirstName} {Model.LastName}";
+}
+
+@section Styles {
+    <style>
+        .profile-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .profile-header {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .profile-info {
+            display: flex;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .profile-picture {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-details {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .profile-role {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #e7f3ff;
+            color: #1877f2;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .profile-bio {
+            color: #65676b;
+            font-size: 15px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        .stat-item {
+            font-size: 14px;
+            color: #65676b;
+        }
+
+        .stat-number {
+            font-weight: bold;
+            color: #1c1e21;
+            font-size: 18px;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .btn-edit {
+            padding: 8px 24px;
+            background: #e4e6eb;
+            color: #050505;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+            .btn-edit:hover {
+                background: #d8dadf;
+            }
+
+        .btn-friend {
+            padding: 8px 24px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+            .btn-friend:hover {
+                background: #166fe5;
+            }
+
+        .profile-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e4e6eb;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .post-content {
+            margin-bottom: 12px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .post-time {
+            font-size: 13px;
+            color: #65676b;
+        }
+
+        .post-image {
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .friends-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .friend-card {
+            text-align: center;
+            padding: 12px;
+            border: 1px solid #e4e6eb;
+            border-radius: 8px;
+            transition: background 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+            .friend-card:hover {
+                background: #f2f2f2;
+            }
+
+        .friend-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 8px;
+        }
+
+        .friend-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .edit-profile-form {
+            display: none;
+        }
+
+            .edit-profile-form.active {
+                display: block;
+            }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 600;
+            }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #65676b;
+        }
+    </style>
+}
+
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-info">
+            <img src="@(Model.ProfilePictureURL ?? "/images/default-avatar.png")"
+                 alt="Profile Picture"
+                 class="profile-picture" />
+
+            <div class="profile-details">
+                <h1 class="profile-name">@Model.FirstName @Model.LastName</h1>
+                <span class="profile-role">@Model.Role</span>
+
+                @if (!string.IsNullOrEmpty(Model.Bio))
+                {
+                    <p class="profile-bio">@Model.Bio</p>
+                }
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">@ViewBag.Posts.Count</div>
+                        Posts
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">@ViewBag.Friends.Count</div>
+                        Friends
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">@Model.CreatedAt.ToString("MMM yyyy")</div>
+                        Joined
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    @if (ViewBag.IsOwnProfile)
+                    {
+                        <button class="btn-edit" onclick="toggleEditProfile()">✏️ Edit Profile</button>
+                    }
+                    else if (!ViewBag.AreFriends)
+                    {
+                        <button class="btn-friend" onclick="sendFriendRequest('@Model.Id')">➕ Add Friend</button>
+                    }
+                    else
+                    {
+                        <button class="btn-edit" disabled>✓ Friends</button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (ViewBag.IsOwnProfile)
+        {
+            <div class="edit-profile-form" id="editProfileForm">
+                <hr style="margin: 20px 0;" />
+                <form method="post" action="/Home/UpdateProfile" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-group">
+                        <label>Bio</label>
+                        <textarea name="bio" class="form-control" maxlength="150">@Model.Bio</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Profile Picture</label>
+                        <input type="file" name="profilePicture" class="form-control" accept="image/*" />
+                        <small style="color: #65676b; font-size: 13px;">Max 2MB</small>
+                    </div>
+
+                    <button type="submit" class="btn-friend">Save Changes</button>
+                    <button type="button" class="btn-edit" onclick="toggleEditProfile()">Cancel</button>
+                </form>
+            </div>
+        }
+    </div>
+
+    <div class="profile-section">
+        <h2 class="section-title">Friends (@ViewBag.Friends.Count)</h2>
+
+        @if (ViewBag.Friends.Count > 0)
+        {
+            <div class="friends-grid">
+                @foreach (var friend in ViewBag.Friends.Take(6))
+                {
+                    <a href="/Home/Profile?userId=@friend.Id" class="friend-card">
+                        <img src="@(friend.ProfilePictureURL ?? "/images/default-avatar.png")"
+                             alt="@friend.FirstName"
+                             class="friend-avatar" />
+                        <div class="friend-name">@friend.FirstName @friend.LastName</div>
+                    </a>
+                }
+            </div>
+
+            @if (ViewBag.Friends.Count > 6)
+            {
+                <div style="text-align: center; margin-top: 16px;">
+                    <a href="/Home/Friends" class="btn-edit">See All Friends</a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <p>No friends yet</p>
+            </div>
+        }
+    </div>
+
+    <div class="profile-section">
+        <h2 class="section-title">Posts</h2>
+
+        @if (ViewBag.Posts.Count > 0)
+        {
+            @foreach (var post in ViewBag.Posts)
+            {
+                <div class="post-card">
+                    <div class="post-time">@post.CreatedAt.ToString("MMMM dd, yyyy")</div>
+
+                    @if (!string.IsNullOrEmpty(post.Content))
+                    {
+                        <div class="post-content">@post.Content</div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(post.MediaURL))
+                    {
+                        <img src="@post.MediaURL" alt="Post media" class="post-image" />
+                    }
+
+                    <div style="color: #65676b; font-size: 14px; margin-top: 8px;">
+                        👍 @post.Likes.Count likes · 💬 @post.Comments.Count comments
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <p>No posts yet</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleEditProfile() {
+            const form = document.getElementById('editProfileForm');
+            form.classList.toggle('active');
+        }
+
+        function sendFriendRequest(receiverId) {
+            $.post('/Home/SendFriendRequest', { receiverId: receiverId }, function(data) {
+                if (data.success) {
+                    alert('Friend request sent!');
+                    location.reload();
+                } else {
+                    alert('Failed to send friend request');
+                }
+            });
+        }
+    </script>
+}
