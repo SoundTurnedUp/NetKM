@@ -10,6 +10,7 @@ namespace NetKM.Services
         Task<List<Message>> GetConversationAsync(string userId1, string userId2, int count = 50);
         Task<List<Message>> GetUnreadMessagesAsync(string userId);
         Task<bool> MarkAsReadAsync(Guid messageId);
+        Task<Message> GetLastMessageAsync(string userId1, string userId2);
     }
 
     public class MessageService : IMessageService
@@ -78,6 +79,15 @@ namespace NetKM.Services
             _context.Messages.Update(message);
             await _context.SaveChangesAsync();
             return true;
+        }
+        public async Task<Message> GetLastMessageAsync(string userId1, string userId2)
+        {
+            return await _context.Messages
+                .Where(m =>
+                    (m.SenderId == userId1 && m.ReceiverId == userId2) ||
+                    (m.SenderId == userId2 && m.ReceiverId == userId1))
+                .OrderByDescending(m => m.SentAt)
+                .FirstOrDefaultAsync();
         }
     }
 }

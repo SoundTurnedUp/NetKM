@@ -11,11 +11,11 @@ namespace NetKM.Models
         public string ReporterId { get; set; }
 
         [Required]
-        public Guid ContentId { get; set; }  // Can be post or comment
+        public Guid ContentId { get; set; }  
 
         [Required]
         [MaxLength(20)]
-        public string ContentType { get; set; }
+        public string ContentType { get; set; } // Can be post or comment
 
         [MaxLength(500)]
         public string? Reason { get; set; }

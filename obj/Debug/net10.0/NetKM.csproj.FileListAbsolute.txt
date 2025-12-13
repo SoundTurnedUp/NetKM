@@ -346,3 +346,4 @@ C:\Users\sound\source\repos\C#\NEA\NetKM\NetKM\bin\Debug\net10.0\runtimes\win-x8
 C:\Users\sound\source\repos\C#\NEA\NetKM\NetKM\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
 C:\Users\sound\source\repos\C#\NEA\NetKM\NetKM\obj\Debug\net10.0\compressed\6qksyplild-{0}-8fq3wrrdvo-8fq3wrrdvo.gz
 C:\Users\sound\source\repos\C#\NEA\NetKM\NetKM\obj\Debug\net10.0\compressed\9bipf0h5k9-{0}-8fq3wrrdvo-8fq3wrrdvo.gz
+C:\Users\sound\source\repos\C#\NEA\NetKM\NetKM\obj\Debug\net10.0\NetKM.sourcelink.json

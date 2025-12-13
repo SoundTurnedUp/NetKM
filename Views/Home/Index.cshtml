@@ -74,13 +74,30 @@
             height: 40px;
             border-radius: 50%;
             margin-right: 12px;
+            transition: opacity 0.2s;
+            cursor: pointer;
         }
+
+            .post-avatar:hover {
+                opacity: 0.8;
+            }
 
         .post-author-info h3 {
             font-size: 15px;
             font-weight: 600;
             margin-bottom: 2px;
         }
+
+        .author-link {
+            color: #1c1e21;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+            .author-link:hover {
+                color: #1877f2;
+                text-decoration: underline;
+            }
 
         .post-time {
             font-size: 13px;
@@ -220,6 +237,13 @@
             font-size: 15px;
             font-weight: 600;
             margin: 0;
+            color: #1c1e21;
+            transition: color 0.2s;
+        }
+
+        #modalAuthorLink:hover h3 {
+            color: #1877f2;
+            text-decoration: underline;
         }
 
         .modal-close {
@@ -308,7 +332,13 @@
             height: 32px;
             border-radius: 50%;
             flex-shrink: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
         }
+
+            .comment-avatar:hover {
+                opacity: 0.8;
+            }
 
         .modal-comment-content {
             flex: 1;
@@ -319,6 +349,17 @@
             font-size: 14px;
             margin-bottom: 4px;
         }
+
+            .modal-comment-author a {
+                color: #1c1e21;
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+
+                .modal-comment-author a:hover {
+                    color: #1877f2;
+                    text-decoration: underline;
+                }
 
         .modal-comment-text {
             font-size: 14px;
@@ -516,16 +557,20 @@
     {
         @foreach (var post in Model)
         {
-            <div class="post-card">
-                <div class="post-header">
+            <div class="post-header">
+                <a href="/Home/Profile?userId=@post.AuthorId">
                     <img src="@(post.Author.ProfilePictureURL ?? "/images/default-avatar.png")"
                          alt="Avatar"
                          class="post-avatar" />
-                    <div class="post-author-info">
+                </a>
+
+                <div class="post-author-info">
+                    <a href="/Home/Profile?userId=@post.AuthorId" class="author-link">
                         <h3>@post.Author.FirstName @post.Author.LastName</h3>
-                        <span class="post-time">@post.CreatedAt.ToString("MMM dd, yyyy")</span>
-                    </div>
+                    </a>
+                    <span class="post-time">@post.CreatedAt.ToString("dd MMM, yyyy")</span>
                 </div>
+            </div>
 
                 @if (!string.IsNullOrEmpty(post.Content))
                 {
@@ -553,7 +598,6 @@
                         </button>
                     }
                 </div>
-            </div>
         }
     }
 </div>
@@ -567,10 +611,12 @@
         <div class="modal-right">
             <div class="modal-header">
                 <div class="modal-post-author">
-                    <img src="" alt="Avatar" class="modal-avatar" id="modalAuthorAvatar" />
-                    <div class="modal-author-info">
-                        <h3 id="modalAuthorName"></h3>
-                    </div>
+                    <a href="" id="modalAuthorLink" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+                        <img src="" alt="Avatar" class="modal-avatar" id="modalAuthorAvatar" />
+                        <div class="modal-author-info">
+                            <h3 id="modalAuthorName"></h3>
+                        </div>
+                    </a>
                 </div>
                 <button class="modal-close" onclick="closePostModal()">×</button>
             </div>
@@ -697,6 +743,7 @@
                 // Set author info
                 $('#modalAuthorAvatar').attr('src', post.authorAvatar || '/images/default-avatar.png');
                 $('#modalAuthorName').text(post.authorName);
+                $('#modalAuthorLink').attr('href', `/Home/Profile?userId=${post.authorId}`);
 
                 // Set post content
                 if (post.content) {
@@ -755,11 +802,13 @@
 
                         const commentHtml = `
                             <div class="modal-comment" id="comment-${comment.commentId}">
-                                <img src="${comment.authorAvatar || '/images/default-avatar.png'}"
-                                     class="comment-avatar" />
+                                <a href="/Home/Profile?userId=${comment.authorId}">
+                                    <img src="${comment.authorAvatar || '/images/default-avatar.png'}"
+                                         class="comment-avatar" />
+                                </a>
                                 <div class="modal-comment-content">
                                     <div class="modal-comment-author">
-                                        ${comment.authorName}
+                                        <a href="/Home/Profile?userId=${comment.authorId}">${comment.authorName}</a>
                                         ${deleteBtn}
                                     </div>
                                     <div class="modal-comment-text">${comment.content}</div>

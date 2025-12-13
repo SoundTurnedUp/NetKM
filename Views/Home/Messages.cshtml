@@ -1,0 +1,530 @@
+﻿@model MessagesViewModel
+@{
+    ViewData["Title"] = "Messages";
+}
+
+@section Styles {
+    <style>
+        .messages-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 0;
+            height: calc(100vh - 120px);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .conversations-sidebar {
+            width: 350px;
+            border-right: 1px solid #e4e6eb;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #e4e6eb;
+        }
+
+            .sidebar-header h1 {
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 12px;
+            }
+
+        .search-conversations {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            font-size: 15px;
+        }
+
+            .search-conversations:focus {
+                outline: none;
+                border-color: #1877f2;
+            }
+
+        .conversations-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+            .conversation-item:hover {
+                background: #f2f2f2;
+            }
+
+            .conversation-item.active {
+                background: #e7f3ff;
+                border-left: 3px solid #1877f2;
+            }
+
+        .conversation-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+
+        .conversation-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .conversation-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .conversation-preview {
+            font-size: 13px;
+            color: #65676b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+            .conversation-preview.unread {
+                font-weight: 600;
+                color: #1c1e21;
+            }
+
+        .conversation-time {
+            font-size: 12px;
+            color: #65676b;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e4e6eb;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .chat-header-info h2 {
+            font-size: 17px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .chat-header-info a {
+            color: #1c1e21;
+            text-decoration: none;
+        }
+
+            .chat-header-info a:hover {
+                text-decoration: underline;
+            }
+
+        .messages-display {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            display: flex;
+            gap: 8px;
+            max-width: 70%;
+        }
+
+            .message.sent {
+                align-self: flex-end;
+                flex-direction: row-reverse;
+            }
+
+            .message.received {
+                align-self: flex-start;
+            }
+
+        .message-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .message-bubble {
+            padding: 8px 12px;
+            border-radius: 18px;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+
+        .message.sent .message-bubble {
+            background: #1877f2;
+            color: white;
+        }
+
+        .message.received .message-bubble {
+            background: #f0f2f5;
+            color: #1c1e21;
+        }
+
+        .message-text {
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #65676b;
+            margin-top: 4px;
+            text-align: center;
+        }
+
+        .message.sent .message-time {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .chat-input-area {
+            padding: 16px 20px;
+            border-top: 1px solid #e4e6eb;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            font-size: 15px;
+            resize: none;
+            max-height: 100px;
+        }
+
+            .chat-input:focus {
+                outline: none;
+                border-color: #1877f2;
+            }
+
+        .send-button {
+            padding: 10px 20px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+            .send-button:hover {
+                background: #166fe5;
+            }
+
+            .send-button:disabled {
+                background: #b4d5ff;
+                cursor: not-allowed;
+            }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #65676b;
+            text-align: center;
+            padding: 40px;
+        }
+
+            .empty-state h2 {
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+
+            .empty-state p {
+                font-size: 15px;
+            }
+
+        .no-conversation-selected {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #65676b;
+            text-align: center;
+        }
+    </style>
+}
+
+<div class="messages-container">
+    <div class="conversations-sidebar">
+        <div class="sidebar-header">
+            <h1>Messages</h1>
+            <input type="text"
+                   class="search-conversations"
+                   id="searchConversations"
+                   placeholder="Search messages..."
+                   onkeyup="filterConversations()" />
+        </div>
+
+        <div class="conversations-list" id="conversationsList">
+            @if (Model.Conversations != null && Model.Conversations.Count > 0)
+            {
+                @foreach (var conv in Model.Conversations)
+                {
+                    <div class="conversation-item @(Model.ActiveUserId == conv.UserId ? "active" : "")"
+                         data-user-id="@conv.UserId"
+                         data-user-name="@conv.UserName"
+                         onclick="selectConversation('@conv.UserId', '@conv.UserName')">
+                        <img src="@(conv.Avatar ?? "/images/default-avatar.png")"
+                             alt="@conv.UserName"
+                             class="conversation-avatar" />
+                        <div class="conversation-info">
+                            <div class="conversation-name">@conv.UserName</div>
+                            <div class="conversation-preview @(conv.UnreadCount > 0 ? "unread" : "")">
+                                @if (!string.IsNullOrEmpty(conv.LastMessage))
+                                {
+                                    @conv.LastMessage
+                                }
+                                else
+                                {
+                                    <text>No messages yet</text>
+                                }
+                            </div>
+                        </div>
+                        @if (conv.LastMessageTime.HasValue)
+                        {
+                            <div class="conversation-time">@conv.LastMessageTime.Value.ToString("MMM dd")</div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <h2>No conversations yet</h2>
+                    <p>Add friends and start messaging!</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="chat-area">
+        @if (!string.IsNullOrEmpty(Model.ActiveUserId))
+        {
+            <div class="chat-header">
+                <a href="/Home/Profile?userId=@Model.ActiveUserId">
+                    <img src="@(Model.ActiveUserAvatar ?? "/images/default-avatar.png")"
+                         alt="@Model.ActiveUserName"
+                         class="chat-header-avatar" />
+                </a>
+                <div class="chat-header-info">
+                    <h2>
+                        <a href="/Home/Profile?userId=@Model.ActiveUserId">
+                            @Model.ActiveUserName
+                        </a>
+                    </h2>
+                </div>
+            </div>
+
+            <div class="messages-display" id="messagesDisplay">
+                @if (Model.Messages != null && Model.Messages.Count > 0)
+                {
+                    var orderedMessages = Model.Messages.OrderBy(m => m.SentAt).ToList();
+                    @foreach (var message in orderedMessages)
+                    {
+                        var isSent = message.SenderId == Model.CurrentUserId;
+                        <div class="message @(isSent ? "sent" : "received")">
+                            <img src="@(isSent? Model.CurrentUserAvatar: Model.ActiveUserAvatar)"
+                                 alt="Avatar"
+                                 class="message-avatar" />
+                            <div>
+                                <div class="message-bubble">
+                                    <div class="message-text">@message.Content</div>
+                                </div>
+                                <div class="message-time">@message.SentAt.ToString("HH:mm")</div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="chat-input-area">
+                <textarea class="chat-input"
+                      id="messageInput"
+                      placeholder="Type a message..."
+                      rows="1"
+                      onkeypress="handleMessageKeyPress(event)"
+                      oninput="autoResize(this)"></textarea>
+                <button class="send-button" id="sendButton" onclick="sendMessage()" disabled>Send</button>
+            </div>
+        }
+        else
+        {
+            <div class="no-conversation-selected">
+                <div>
+                    <h2>Select a conversation</h2>
+                    <p>Choose a friend to start messaging</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const currentUserId = '@Model.CurrentUserId';
+        const activeUserId = '@Model.ActiveUserId';
+
+        // Auto-resize textarea
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+
+            // Enable/disable send button
+            const sendBtn = document.getElementById('sendButton');
+            sendBtn.disabled = textarea.value.trim().length === 0;
+        }
+
+        // Handle Enter key
+        function handleMessageKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Send message
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+
+            if (!content || !activeUserId) return;
+
+            $.post('/Home/SendMessage', {
+                receiverId: activeUserId,
+                content: content,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            }, function(data) {
+                if (data.success) {
+                    // Add message to display
+                    addMessageToDisplay(data.message, true);
+
+                    // Clear input
+                    input.value = '';
+                    input.style.height = 'auto';
+                    document.getElementById('sendButton').disabled = true;
+
+                    // Scroll to bottom
+                    scrollToBottom();
+                } else {
+                    alert('Failed to send message');
+                }
+            });
+        }
+
+        // Add message to display
+        function addMessageToDisplay(message, isSent) {
+            const messagesDisplay = document.getElementById('messagesDisplay');
+            const avatar = isSent ? '@Model.CurrentUserAvatar' : '@Model.ActiveUserAvatar';
+
+            const messageHtml = `
+                <div class="message ${isSent ? 'sent' : 'received'}">
+                    <img src="${avatar || '/images/default-avatar.png'}"
+                         alt="Avatar"
+                         class="message-avatar" />
+                    <div>
+                        <div class="message-bubble">
+                            <div class="message-text">${message.content}</div>
+                        </div>
+                        <div class="message-time">${new Date(message.sentAt).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}</div>
+                    </div>
+                </div>
+            `;
+
+            messagesDisplay.insertAdjacentHTML('beforeend', messageHtml);
+        }
+
+        // Scroll to bottom
+        function scrollToBottom() {
+            const messagesDisplay = document.getElementById('messagesDisplay');
+            messagesDisplay.scrollTop = messagesDisplay.scrollHeight;
+        }
+
+        // Select conversation
+        function selectConversation(userId, userName) {
+            window.location.href = `/Home/Messages?userId=${userId}`;
+        }
+
+        // Filter conversations
+        function filterConversations() {
+            const search = document.getElementById('searchConversations').value.toLowerCase();
+            const conversations = document.querySelectorAll('.conversation-item');
+
+            conversations.forEach(conv => {
+                const name = conv.getAttribute('data-user-name').toLowerCase();
+                if (name.includes(search)) {
+                    conv.style.display = 'flex';
+                } else {
+                    conv.style.display = 'none';
+                }
+            });
+        }
+
+        // Scroll to bottom on load
+        $(document).ready(function() {
+            scrollToBottom();
+
+            // Poll for new messages every 3 seconds
+            if (activeUserId) {
+                setInterval(pollNewMessages, 3000);
+            }
+        });
+
+        // Poll for new messages
+        let lastMessageTime = new Date();
+        function pollNewMessages() {
+            if (!activeUserId) return;
+
+            $.get('/Home/GetNewMessages', {
+                userId: activeUserId,
+                since: lastMessageTime.toISOString()
+            }, function(data) {
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(msg => {
+                        addMessageToDisplay(msg, false);
+                    });
+                    lastMessageTime = new Date();
+                    scrollToBottom();
+                }
+            });
+        }
+    </script>
+}
+
+@Html.AntiForgeryToken()

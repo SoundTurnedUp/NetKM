@@ -14,6 +14,7 @@ namespace NetKM.Controllers
         private readonly ICommentService _commentService;
         private readonly IUserService _userService;
         private readonly IFileUploadService _fileUploadService;
+        private readonly IMessageService _messageService;
         private readonly UserManager<User> _userManager;
 
         public HomeController(
@@ -21,18 +22,21 @@ namespace NetKM.Controllers
             ICommentService commentService,
             IUserService userService,
             IFileUploadService fileUploadService,
+            IMessageService messageService,
             UserManager<User> userManager)
         {
             _postService = postService;
             _commentService = commentService;
             _userService = userService;
             _fileUploadService = fileUploadService;
+            _messageService = messageService;
             _userManager = userManager;
         }
 
+        // GET: /Home/Index - Main Feed
         public async Task<IActionResult> Index(int page = 1)
         {
-            // For testing
+            // For testing - if views aren't loading
             if (!User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Login", "Account");
@@ -47,6 +51,7 @@ namespace NetKM.Controllers
             return View(posts);
         }
 
+        // POST: /Home/CreatePost
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePost(string content, IFormFile media)
@@ -72,6 +77,7 @@ namespace NetKM.Controllers
             return RedirectToAction("Index");
         }
 
+        // POST: /Home/DeletePost
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeletePost(Guid postId)
@@ -87,6 +93,7 @@ namespace NetKM.Controllers
             return RedirectToAction("Index");
         }
 
+        // GET: /Home/GetPost (for modal)
         [HttpGet]
         public async Task<IActionResult> GetPost(Guid postId)
         {
@@ -100,6 +107,7 @@ namespace NetKM.Controllers
             return Json(new
             {
                 postId = post.PostId,
+                authorId = post.AuthorId,
                 authorName = $"{post.Author.FirstName} {post.Author.LastName}",
                 authorAvatar = post.Author.ProfilePictureURL,
                 content = post.Content,
@@ -110,6 +118,7 @@ namespace NetKM.Controllers
             });
         }
 
+        // GET: /Home/GetComments (for modal)
         [HttpGet]
         public async Task<IActionResult> GetComments(Guid postId)
         {
@@ -120,6 +129,7 @@ namespace NetKM.Controllers
             var commentData = comments.Select(c => new
             {
                 commentId = c.CommentId,
+                authorId = c.AuthorId,
                 authorName = $"{c.Author.FirstName} {c.Author.LastName}",
                 authorAvatar = c.Author.ProfilePictureURL,
                 content = c.Content,
@@ -130,6 +140,7 @@ namespace NetKM.Controllers
             return Json(commentData);
         }
 
+        // POST: /Home/DeleteComment
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteComment(Guid commentId)
@@ -140,6 +151,7 @@ namespace NetKM.Controllers
             return Json(new { success = result });
         }
 
+        // Helper method to get time ago string
         private string GetTimeAgo(DateTime dateTime)
         {
             var timeSpan = DateTime.UtcNow - dateTime;
@@ -158,6 +170,7 @@ namespace NetKM.Controllers
             return dateTime.ToString("MMM dd, yyyy");
         }
 
+        // POST: /Home/LikePost
         [HttpPost]
         public async Task<IActionResult> LikePost(Guid postId)
         {
@@ -173,6 +186,7 @@ namespace NetKM.Controllers
             return Json(new { success = true, likeCount, hasLiked = !hasLiked });
         }
 
+        // POST: /Home/AddComment
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddComment(Guid postId, string content)
@@ -197,6 +211,7 @@ namespace NetKM.Controllers
             }
         }
 
+        // GET: /Home/Profile/{userId}
         public async Task<IActionResult> Profile(string userId)
         {
             if (string.IsNullOrEmpty(userId))
@@ -219,6 +234,7 @@ namespace NetKM.Controllers
             return View(user);
         }
 
+        // POST: /Home/UpdateProfile
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateProfile(string bio, IFormFile profilePicture)
@@ -244,6 +260,7 @@ namespace NetKM.Controllers
             return RedirectToAction("Profile", new { userId });
         }
 
+        // POST: /Home/SendFriendRequest
         [HttpPost]
         public async Task<IActionResult> SendFriendRequest(string receiverId)
         {
@@ -253,6 +270,7 @@ namespace NetKM.Controllers
             return Json(new { success = result });
         }
 
+        // POST: /Home/AcceptFriendRequest
         [HttpPost]
         public async Task<IActionResult> AcceptFriendRequest(Guid requestId)
         {
@@ -260,6 +278,7 @@ namespace NetKM.Controllers
             return Json(new { success = result });
         }
 
+        // POST: /Home/DeclineFriendRequest
         [HttpPost]
         public async Task<IActionResult> DeclineFriendRequest(Guid requestId)
         {
@@ -267,6 +286,7 @@ namespace NetKM.Controllers
             return Json(new { success = result });
         }
 
+        // GET: /Home/Friends
         public async Task<IActionResult> Friends()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -275,6 +295,106 @@ namespace NetKM.Controllers
 
             ViewBag.PendingRequests = pendingRequests;
             return View(friends);
+        }
+
+        // GET: /Home/Messages
+        public async Task<IActionResult> Messages(string userId = null)
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var friends = await _userService.GetFriendsAsync(currentUserId);
+            var currentUser = await _userService.GetUserByIdAsync(currentUserId);
+
+            var viewModel = new MessagesViewModel
+            {
+                CurrentUserId = currentUserId,
+                CurrentUserAvatar = currentUser.ProfilePictureURL
+            };
+
+            // Get conversations with last message info
+            foreach (var friend in friends)
+            {
+                var lastMessage = await _messageService.GetLastMessageAsync(currentUserId, friend.Id);
+                viewModel.Conversations.Add(new ConversationViewModel
+                {
+                    UserId = friend.Id,
+                    UserName = $"{friend.FirstName} {friend.LastName}",
+                    Avatar = friend.ProfilePictureURL,
+                    LastMessage = lastMessage?.Content,
+                    LastMessageTime = lastMessage?.SentAt,
+                    UnreadCount = 0
+                });
+            }
+
+            viewModel.Conversations = viewModel.Conversations.OrderByDescending(c => c.LastMessageTime).ToList();
+
+            // If a specific user is selected, load their conversation
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var activeUser = await _userService.GetUserByIdAsync(userId);
+                var messages = await _messageService.GetConversationAsync(currentUserId, userId, 100);
+
+                viewModel.ActiveUserId = userId;
+                viewModel.ActiveUserName = $"{activeUser.FirstName} {activeUser.LastName}";
+                viewModel.ActiveUserAvatar = activeUser.ProfilePictureURL;
+                viewModel.Messages = messages;
+            }
+
+            return View(viewModel);
+        }
+
+        // POST: /Home/SendMessage
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendMessage(string receiverId, string content)
+        {
+            var senderId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            try
+            {
+                // Check if they're friends
+                var areFriends = await _userService.AreFriendsAsync(senderId, receiverId);
+                if (!areFriends)
+                {
+                    return Json(new { success = false, message = "You can only message friends" });
+                }
+
+                var message = await _messageService.SendMessageAsync(senderId, receiverId, content, null);
+
+                return Json(new
+                {
+                    success = true,
+                    message = new
+                    {
+                        content = message.Content,
+                        sentAt = message.SentAt,
+                        senderId = message.SenderId
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // GET: /Home/GetNewMessages
+        [HttpGet]
+        public async Task<IActionResult> GetNewMessages(string userId, DateTime since)
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var messages = await _messageService.GetConversationAsync(currentUserId, userId, 50);
+
+            var newMessages = messages
+                .Where(m => m.SentAt > since && m.SenderId == userId)
+                .Select(m => new
+                {
+                    content = m.Content,
+                    sentAt = m.SentAt,
+                    senderId = m.SenderId
+                })
+                .ToList();
+
+            return Json(new { messages = newMessages });
         }
     }
 }

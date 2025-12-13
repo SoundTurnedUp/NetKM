@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NetKM")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8a27963c22a3521143d7656e4af26ed6d88024e4")]
 [assembly: System.Reflection.AssemblyProductAttribute("NetKM")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NetKM")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

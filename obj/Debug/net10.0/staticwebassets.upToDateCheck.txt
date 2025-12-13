@@ -63,14 +63,19 @@ wwwroot\lib\jquery\dist\jquery.slim.min.map
 wwwroot\lib\jquery\LICENSE.txt
 wwwroot\uploads\posts\0d32410e-8096-43b9-8d3c-8844243aa61e_Screenshot 2025-11-10 204406.png
 wwwroot\uploads\posts\0e3f826c-5688-4e8f-b205-98e277ba4ee0_Screenshot 2025-11-10 204406.png
+wwwroot\uploads\posts\13ee14ee-eda7-4d6d-8f82-8c3108e60955_Screenshot 2025-12-12 163304.png
 wwwroot\uploads\posts\1400ca02-c2bf-481c-b7ef-839b8756b216_647ae52a5c496aa90674aa3ee6a9ff07.jpg
 wwwroot\uploads\posts\90fba348-35d8-4fe5-980d-dc7e45230b8b_647ae52a5c496aa90674aa3ee6a9ff07.jpg
 wwwroot\uploads\posts\a4506e36-c796-4187-9bc8-40e8d0e16978_647ae52a5c496aa90674aa3ee6a9ff07.jpg
 wwwroot\uploads\posts\d13a3abc-0b07-44a1-a4ef-d10cb8ad665f_Screenshot 2025-11-10 204406.png
+wwwroot\uploads\posts\f35293e7-67f3-4576-b72f-8c5e28c10fcd_Screenshot 2025-11-14 181545.png
 wwwroot\uploads\profiles\07d47690-71d6-4587-8e5f-46fce709f973_702827356fd0f8397d1dab3b7f256463.jpg
+wwwroot\uploads\profiles\2d075378-1872-48eb-8a51-dc5895dc7577_c0795feeb4a03c00b6205e7355a65086.jpg
 wwwroot\uploads\profiles\56dfabb6-7530-4fa0-bc36-c6a3d85f9c59_Screenshot 2025-11-10 204406.png
 wwwroot\uploads\profiles\5d3e804b-72cf-4bd8-aa29-d021f1093006_647ae52a5c496aa90674aa3ee6a9ff07.jpg
 wwwroot\uploads\profiles\914548a8-daa6-40ea-bd1f-0baee6ef054b_Screenshot 2025-11-10 204406.png
+wwwroot\uploads\profiles\a7080cb2-c9c8-4d52-ace0-38c0db08663c_702827356fd0f8397d1dab3b7f256463.jpg
+wwwroot\uploads\profiles\ae9384cc-6829-40ef-b551-3e93bc3efdb7_647ae52a5c496aa90674aa3ee6a9ff07.jpg
 C:\Users\sound\source\repos\C#\NEA\NetKM\NetKM\wwwroot\css\site.css
 C:\Users\sound\source\repos\C#\NEA\NetKM\NetKM\wwwroot\favicon.ico
 C:\Users\sound\source\repos\C#\NEA\NetKM\NetKM\wwwroot\js\site.js

@@ -1,4 +1,5 @@
-﻿@model User
+﻿@using System.Security.Claims
+@model User
 @{
     ViewData["Title"] = $"{Model.FirstName} {Model.LastName}";
 }
@@ -132,7 +133,14 @@
             padding: 16px;
             margin-bottom: 16px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
+
+            .post-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            }
 
         .post-content {
             margin-bottom: 12px;
@@ -224,6 +232,8 @@
 }
 
 <div class="profile-container">
+    @Html.AntiForgeryToken()
+
     <div class="profile-header">
         <div class="profile-info">
             <img src="@(Model.ProfilePictureURL ?? "/images/default-avatar.png")"
@@ -259,13 +269,19 @@
                     {
                         <button class="btn-edit" onclick="toggleEditProfile()">✏️ Edit Profile</button>
                     }
-                    else if (!ViewBag.AreFriends)
-                    {
-                        <button class="btn-friend" onclick="sendFriendRequest('@Model.Id')">➕ Add Friend</button>
-                    }
                     else
                     {
-                        <button class="btn-edit" disabled>✓ Friends</button>
+                        @if (ViewBag.AreFriends)
+                        {
+                            <a href="/Home/Messages?userId=@Model.Id" class="btn-friend" style="text-decoration: none;">
+                                💬 Message
+                            </a>
+                            <span class="btn-edit" style="cursor: default;">✓ Friends</span>
+                        }
+                        else
+                        {
+                            <button class="btn-friend" onclick="sendFriendRequest('@Model.Id')">➕ Add Friend</button>
+                        }
                     }
                 </div>
             </div>
@@ -302,7 +318,7 @@
         @if (ViewBag.Friends.Count > 0)
         {
             <div class="friends-grid">
-                @foreach (var friend in ViewBag.Friends.Take(6))
+                @foreach (var friend in ((List<NetKM.Models.User>)ViewBag.Friends).Take(6))
                 {
                     <a href="/Home/Profile?userId=@friend.Id" class="friend-card">
                         <img src="@(friend.ProfilePictureURL ?? "/images/default-avatar.png")"
@@ -335,7 +351,7 @@
         {
             @foreach (var post in ViewBag.Posts)
             {
-                <div class="post-card">
+                <div class="post-card" data-post-id="@post.PostId">
                     <div class="post-time">@post.CreatedAt.ToString("MMMM dd, yyyy")</div>
 
                     @if (!string.IsNullOrEmpty(post.Content))
@@ -363,8 +379,85 @@
     </div>
 </div>
 
+<!-- Post Modal - Must be at root level -->
+<div class="modal-overlay" id="postModal" style="display: none;">
+    <div class="modal-content" id="modalContentContainer">
+        <div class="modal-left" id="modalLeft" style="display:none;">
+            <img src="" alt="Post" class="modal-image" id="modalImage" />
+        </div>
+        <div class="modal-right">
+            <div class="modal-header">
+                <div class="modal-post-author">
+                    <img src="" alt="Avatar" class="modal-avatar" id="modalAuthorAvatar" />
+                    <div class="modal-author-info">
+                        <h3 id="modalAuthorName"></h3>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closePostModal()">×</button>
+            </div>
+
+            <div class="modal-post-content" id="modalPostContent" style="display:none;"></div>
+
+            <div class="modal-comments" id="modalCommentsSection">
+                <h3 class="modal-comments-header" id="modalCommentsHeader">Comments (0)</h3>
+                <div class="modal-empty-comments" id="modalEmptyComments" style="display:none;">
+                    <p>No comments yet</p>
+                    <p style="font-size: 14px; margin-top: 8px;">Be the first to comment!</p>
+                </div>
+                <div id="modalCommentsList"></div>
+            </div>
+
+            <div class="modal-actions">
+                <div class="modal-action-buttons">
+                    <button class="modal-action-btn" id="modalLikeBtn" onclick="likePostFromModal()">
+                        👍
+                    </button>
+                    <button class="modal-action-btn" onclick="focusCommentInput()">
+                        💬
+                    </button>
+                </div>
+                <div class="modal-like-count" id="modalLikeCount">0 likes</div>
+                <div class="modal-comment-form">
+                    <input type="text"
+                           class="modal-comment-input"
+                           id="modalCommentInput"
+                           placeholder="Add a comment..."
+                           onkeypress="handleCommentKeyPress(event)" />
+                    <button class="modal-comment-submit"
+                            id="modalCommentSubmit"
+                            onclick="submitModalComment()"
+                            disabled>
+                        Post
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        let currentPostId = null;
+        let currentUserId = '@User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)';
+
+        // Get CSRF token
+        function getAntiForgeryToken() {
+            return $('input[name="__RequestVerificationToken"]').val() ||
+                   '@Html.AntiForgeryToken()'.match(/value="([^"]+)"/)?.[1] || '';
+        }
+
+        // Enable/disable comment submit button based on input
+        document.addEventListener('DOMContentLoaded', function() {
+            const commentInput = document.getElementById('modalCommentInput');
+            const submitBtn = document.getElementById('modalCommentSubmit');
+
+            if (commentInput && submitBtn) {
+                commentInput.addEventListener('input', function() {
+                    submitBtn.disabled = this.value.trim().length === 0;
+                });
+            }
+        });
         function toggleEditProfile() {
             const form = document.getElementById('editProfileForm');
             form.classList.toggle('active');
@@ -380,5 +473,216 @@
                 }
             });
         }
+
+        // Prevent onclick from bubbling when clicking inside modal content
+        $(document).ready(function() {
+            // Use event delegation for post clicks
+            $(document).on('click', '.post-card', function(e) {
+                const postId = $(this).data('post-id');
+                if (postId) {
+                    openPostModal(postId);
+                }
+            });
+
+            $('#modalContentContainer').on('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+
+        // Post Modal Functions
+        function openPostModal(postId) {
+            console.log('Opening post modal for:', postId);
+            currentPostId = postId;
+
+            // Fetch post details
+            $.get(`/Home/GetPost?postId=${postId}`, function(post) {
+                console.log('Post data received:', post);
+
+                const modalContainer = $('#modalContentContainer');
+                const modalOverlay = $('#postModal');
+
+                // Check if post has media
+                const hasMedia = post.mediaUrl && post.mediaUrl.trim() !== '';
+
+                if (hasMedia) {
+                    // Instagram-style layout with image on left
+                    modalContainer.removeClass('text-only');
+                    $('#modalLeft').show();
+                    $('#modalImage').attr('src', post.mediaUrl);
+                } else {
+                    // StackOverflow-style layout for text posts
+                    modalContainer.addClass('text-only');
+                    $('#modalLeft').hide();
+                }
+
+                // Set author info
+                $('#modalAuthorAvatar').attr('src', post.authorAvatar || '/images/default-avatar.png');
+                $('#modalAuthorName').text(post.authorName);
+
+                // Set post content
+                if (post.content) {
+                    $('#modalPostContent').html(`<p>${post.content}</p>`).show();
+                } else {
+                    $('#modalPostContent').hide();
+                }
+
+                // Set like count
+                updateModalLikeCount(post.likeCount);
+
+                // Update comments header count
+                $('#modalCommentsHeader').text(`Comments (${post.commentCount})`);
+
+                // Load comments
+                loadModalComments(postId);
+
+                // Show modal
+                modalOverlay.addClass('active').show();
+                console.log('Modal should now be visible');
+
+                // Prevent body scroll
+                $('body').css('overflow', 'hidden');
+            }).fail(function(error) {
+                console.error('Error loading post:', error);
+                alert('Failed to load post');
+            });
+        }
+
+        function closePostModal() {
+            $('#postModal').removeClass('active');
+            $('body').css('overflow', 'auto');
+            currentPostId = null;
+            $('#modalCommentInput').val('');
+            $('#modalCommentSubmit').prop('disabled', true);
+        }
+
+        function loadModalComments(postId) {
+            $.get(`/Home/GetComments?postId=${postId}`, function(comments) {
+                const commentsList = $('#modalCommentsList');
+                commentsList.empty();
+
+                // Update comments header
+                $('#modalCommentsHeader').text(`Comments (${comments.length})`);
+
+                if (comments.length === 0) {
+                    $('#modalEmptyComments').show();
+                } else {
+                    $('#modalEmptyComments').hide();
+
+                    comments.forEach(comment => {
+                        const deleteBtn = comment.canDelete
+                            ? `<button class="modal-comment-delete" onclick="deleteComment('${comment.commentId}')">Delete</button>`
+                            : '';
+
+                        const commentHtml = `
+                            <div class="modal-comment" id="comment-${comment.commentId}">
+                                <img src="${comment.authorAvatar || '/images/default-avatar.png'}"
+                                     class="comment-avatar" />
+                                <div class="modal-comment-content">
+                                    <div class="modal-comment-author">
+                                        ${comment.authorName}
+                                        ${deleteBtn}
+                                    </div>
+                                    <div class="modal-comment-text">${comment.content}</div>
+                                    <div class="modal-comment-time">${comment.timeAgo}</div>
+                                </div>
+                            </div>
+                        `;
+                        commentsList.append(commentHtml);
+                    });
+                }
+            });
+        }
+
+        function updateModalLikeCount(count) {
+            const text = count === 1 ? '1 like' : `${count} likes`;
+            $('#modalLikeCount').text(text);
+        }
+
+        function likePostFromModal() {
+            if (currentPostId) {
+                $.post('/Home/LikePost', { postId: currentPostId }, function(data) {
+                    if (data.success) {
+                        updateModalLikeCount(data.likeCount);
+                    }
+                });
+            }
+        }
+
+        function focusCommentInput() {
+            $('#modalCommentInput').focus();
+        }
+
+        function handleCommentKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                submitModalComment();
+            }
+        }
+
+        function submitModalComment() {
+            const content = $('#modalCommentInput').val().trim();
+            if (!content || !currentPostId) return;
+
+            const token = getAntiForgeryToken();
+
+            $.post('/Home/AddComment', {
+                postId: currentPostId,
+                content: content,
+                __RequestVerificationToken: token
+            }, function(data) {
+                if (data.success) {
+                    // Reload comments
+                    loadModalComments(currentPostId);
+
+                    // Clear input
+                    $('#modalCommentInput').val('');
+                    $('#modalCommentSubmit').prop('disabled', true);
+                }
+            });
+        }
+
+        function deleteComment(commentId) {
+            if (!confirm('Are you sure you want to delete this comment?')) {
+                return;
+            }
+
+            const token = getAntiForgeryToken();
+
+            $.post('/Home/DeleteComment', {
+                commentId: commentId,
+                __RequestVerificationToken: token
+            }, function(data) {
+                if (data.success) {
+                    $(`#comment-${commentId}`).fadeOut(300, function() {
+                        $(this).remove();
+
+                        // Check if comments are empty now
+                        if ($('#modalCommentsList .modal-comment').length === 0) {
+                            $('#modalEmptyComments').show();
+                        }
+
+                        // Update comment count
+                        const currentCount = parseInt($('#modalCommentsHeader').text().match(/\d+/)?.[0] || 0);
+                        $('#modalCommentsHeader').text(`Comments (${Math.max(0, currentCount - 1)})`);
+                    });
+                } else {
+                    alert('Failed to delete comment');
+                }
+            });
+        }
+
+        // Close modal when clicking outside
+        $(document).on('click', function(e) {
+            if ($(e.target).hasClass('modal-overlay')) {
+                closePostModal();
+            }
+        });
+
+        // Close modal on ESC key
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && currentPostId) {
+                closePostModal();
+            }
+        });
     </script>
 }
