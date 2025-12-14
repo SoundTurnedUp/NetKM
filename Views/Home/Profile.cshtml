@@ -6,6 +6,7 @@
 
 @section Styles {
     <style>
+        /* --- PROFILE SPECIFIC STYLES --- */
         .profile-container {
             max-width: 900px;
             margin: 0 auto;
@@ -228,6 +229,340 @@
             padding: 40px;
             color: #65676b;
         }
+
+        /* --- MODAL STYLES (COPIED FROM FEED) --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+            .modal-overlay.active {
+                display: flex;
+            }
+
+        .modal-content {
+            background: white;
+            max-width: 1200px;
+            width: 90%;
+            max-height: 90vh;
+            display: flex;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+            .modal-content.text-only {
+                max-width: 800px;
+                flex-direction: column;
+            }
+
+        .modal-left {
+            flex: 1.5;
+            background: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+
+        .modal-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+
+        .modal-content.text-only .modal-right {
+            max-height: none;
+        }
+
+        .modal-header {
+            padding: 16px;
+            border-bottom: 1px solid #e4e6eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-post-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .modal-author-info h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 0;
+            color: #1c1e21;
+            transition: color 0.2s;
+        }
+
+        #modalAuthorLink:hover h3 {
+            color: #1877f2;
+            text-decoration: underline;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #65676b;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+            .modal-close:hover {
+                background: #f2f2f2;
+            }
+
+        .modal-post-content {
+            padding: 24px;
+            border-bottom: 1px solid #e4e6eb;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .modal-content.text-only .modal-post-content {
+            padding: 32px;
+            background: #fafafa;
+            border-bottom: 2px solid #e4e6eb;
+            min-height: 120px;
+        }
+
+        .modal-post-content h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1c1e21;
+        }
+
+        .modal-post-content p {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .modal-comments {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .modal-content.text-only .modal-comments {
+            padding: 24px 32px;
+            max-height: none;
+        }
+
+        .modal-comments-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e4e6eb;
+            display: none;
+        }
+
+        .modal-content.text-only .modal-comments-header {
+            display: block;
+        }
+
+        .modal-comment {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-content.text-only .modal-comment {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e4e6eb;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+        }
+
+            .comment-avatar:hover {
+                opacity: 0.8;
+            }
+
+        .modal-comment-content {
+            flex: 1;
+        }
+
+        .modal-comment-author {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+            .modal-comment-author a {
+                color: #1c1e21;
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+
+                .modal-comment-author a:hover {
+                    color: #1877f2;
+                    text-decoration: underline;
+                }
+
+        .modal-comment-text {
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .modal-comment-time {
+            font-size: 12px;
+            color: #65676b;
+        }
+
+        .modal-comment-delete {
+            background: none;
+            border: none;
+            color: #e4405f;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+            .modal-comment-delete:hover {
+                background: #ffe8ed;
+            }
+
+        .modal-actions {
+            padding: 12px 16px;
+            border-top: 1px solid #e4e6eb;
+            background: white;
+        }
+
+        .modal-content.text-only .modal-actions {
+            padding: 20px 32px;
+            border-top: 2px solid #e4e6eb;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .modal-action-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 8px;
+            padding: 4px 0;
+        }
+
+        .modal-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 4px;
+        }
+
+        .modal-like-count {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .modal-comment-form {
+            display: flex;
+            gap: 8px;
+            border-top: 1px solid #e4e6eb;
+            padding-top: 12px;
+        }
+
+        .modal-comment-input {
+            flex: 1;
+            border: none;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .modal-comment-submit {
+            background: none;
+            border: none;
+            color: #1877f2;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+            .modal-comment-submit:disabled {
+                color: #b4d5ff;
+                cursor: default;
+            }
+
+        .modal-empty-comments {
+            text-align: center;
+            padding: 40px;
+            color: #65676b;
+        }
+
+        .modal-content.text-only .modal-empty-comments {
+            padding: 60px 40px;
+        }
+
+        .modal-content.text-only .modal-comment-form {
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .modal-content.text-only .modal-comment-input {
+            padding: 12px;
+            background: white;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+        }
+
+        @@media (max-width: 768px) {
+            .modal-content {
+                flex-direction: column;
+                height: 100%;
+                width: 100%;
+                border-radius: 0;
+            }
+
+            .modal-left {
+                flex: none;
+                height: 40vh;
+            }
+        }
     </style>
 }
 
@@ -379,8 +714,7 @@
     </div>
 </div>
 
-<!-- Post Modal - Must be at root level -->
-<div class="modal-overlay" id="postModal" style="display: none;">
+<div class="modal-overlay" id="postModal">
     <div class="modal-content" id="modalContentContainer">
         <div class="modal-left" id="modalLeft" style="display:none;">
             <img src="" alt="Post" class="modal-image" id="modalImage" />
@@ -388,18 +722,20 @@
         <div class="modal-right">
             <div class="modal-header">
                 <div class="modal-post-author">
-                    <img src="" alt="Avatar" class="modal-avatar" id="modalAuthorAvatar" />
-                    <div class="modal-author-info">
-                        <h3 id="modalAuthorName"></h3>
-                    </div>
+                    <a href="" id="modalAuthorLink" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+                        <img src="" alt="Avatar" class="modal-avatar" id="modalAuthorAvatar" />
+                        <div class="modal-author-info">
+                            <h3 id="modalAuthorName"></h3>
+                        </div>
+                    </a>
                 </div>
                 <button class="modal-close" onclick="closePostModal()">×</button>
             </div>
 
-            <div class="modal-post-content" id="modalPostContent" style="display:none;"></div>
+            <div class="modal-post-content" id="modalPostContent"></div>
 
             <div class="modal-comments" id="modalCommentsSection">
-                <h3 class="modal-comments-header" id="modalCommentsHeader">Comments (0)</h3>
+                <h3 class="modal-comments-header" id="modalCommentsHeader">Comments</h3>
                 <div class="modal-empty-comments" id="modalEmptyComments" style="display:none;">
                     <p>No comments yet</p>
                     <p style="font-size: 14px; margin-top: 8px;">Be the first to comment!</p>
@@ -416,7 +752,7 @@
                         💬
                     </button>
                 </div>
-                <div class="modal-like-count" id="modalLikeCount">0 likes</div>
+                <div class="modal-like-count" id="modalLikeCount"></div>
                 <div class="modal-comment-form">
                     <input type="text"
                            class="modal-comment-input"
@@ -518,10 +854,16 @@
                 // Set author info
                 $('#modalAuthorAvatar').attr('src', post.authorAvatar || '/images/default-avatar.png');
                 $('#modalAuthorName').text(post.authorName);
+                $('#modalAuthorLink').attr('href', `/Home/Profile?userId=${post.authorId}`);
 
                 // Set post content
                 if (post.content) {
-                    $('#modalPostContent').html(`<p>${post.content}</p>`).show();
+                    if (hasMedia) {
+                        $('#modalPostContent').html(`<p>${post.content}</p>`).show();
+                    } else {
+                        // For text-only posts, make it more prominent
+                        $('#modalPostContent').html(`<p>${post.content}</p>`).show();
+                    }
                 } else {
                     $('#modalPostContent').hide();
                 }
@@ -536,8 +878,7 @@
                 loadModalComments(postId);
 
                 // Show modal
-                modalOverlay.addClass('active').show();
-                console.log('Modal should now be visible');
+                modalOverlay.addClass('active');
 
                 // Prevent body scroll
                 $('body').css('overflow', 'hidden');
@@ -575,11 +916,13 @@
 
                         const commentHtml = `
                             <div class="modal-comment" id="comment-${comment.commentId}">
-                                <img src="${comment.authorAvatar || '/images/default-avatar.png'}"
-                                     class="comment-avatar" />
+                                <a href="/Home/Profile?userId=${comment.authorId}">
+                                    <img src="${comment.authorAvatar || '/images/default-avatar.png'}"
+                                         class="comment-avatar" />
+                                </a>
                                 <div class="modal-comment-content">
                                     <div class="modal-comment-author">
-                                        ${comment.authorName}
+                                        <a href="/Home/Profile?userId=${comment.authorId}">${comment.authorName}</a>
                                         ${deleteBtn}
                                     </div>
                                     <div class="modal-comment-text">${comment.content}</div>

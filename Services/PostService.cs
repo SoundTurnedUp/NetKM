@@ -51,11 +51,10 @@ namespace NetKM.Services
             await _context.SaveChangesAsync();
 
             // Return post with author included
-            return await _context.Posts
-                .Include(p => p.Author)
-                .FirstOrDefaultAsync(p => p.PostId == post.PostId);
+            await _context.Entry(post).Reference(p => p.Author).LoadAsync();
+            return post;
         }
-
+        
         public async Task<List<Post>> GetAllPostsAsync(int page = 1, int pageSize = 20)
         {
             return await _context.Posts

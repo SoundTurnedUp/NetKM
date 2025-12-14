@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using NetKM.Data;
 using NetKM.Models;
 using NetKM.Services;
 using System.Security.Claims;
@@ -16,6 +18,7 @@ namespace NetKM.Controllers
         private readonly IFileUploadService _fileUploadService;
         private readonly IMessageService _messageService;
         private readonly UserManager<User> _userManager;
+        private readonly ApplicationDbContext _context;
 
         public HomeController(
             IPostService postService,
@@ -23,7 +26,8 @@ namespace NetKM.Controllers
             IUserService userService,
             IFileUploadService fileUploadService,
             IMessageService messageService,
-            UserManager<User> userManager)
+            UserManager<User> userManager,
+            ApplicationDbContext context)
         {
             _postService = postService;
             _commentService = commentService;
@@ -31,6 +35,7 @@ namespace NetKM.Controllers
             _fileUploadService = fileUploadService;
             _messageService = messageService;
             _userManager = userManager;
+            _context = context;
         }
 
         // GET: /Home/Index - Main Feed
@@ -395,6 +400,97 @@ namespace NetKM.Controllers
                 .ToList();
 
             return Json(new { messages = newMessages });
+        }
+
+        // POST: /Home/ReportPost
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReportPost(Guid postId, string reason)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            try
+            {
+                // Check if post exists
+                var post = await _postService.GetPostByIdAsync(postId);
+                if (post == null)
+                {
+                    return Json(new { success = false, message = "Post not found" });
+                }
+
+                // Check if user is trying to report their own post
+                if (post.AuthorId == userId)
+                {
+                    return Json(new { success = false, message = "You cannot report your own post" });
+                }
+
+                // Create report
+                var report = new Report
+                {
+                    ReporterId = userId,
+                    ContentId = postId,
+                    ContentType = "Post",
+                    Reason = reason,
+                    Status = "Pending",
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _context.Reports.AddAsync(report);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: /Home/ReportComment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReportComment(Guid commentId, string reason)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            try
+            {
+                // Check if comment exists
+                var comment = await _context.Comments
+                    .Include(c => c.Author)
+                    .FirstOrDefaultAsync(c => c.CommentId == commentId);
+
+                if (comment == null)
+                {
+                    return Json(new { success = false, message = "Comment not found" });
+                }
+
+                // Check if user is trying to report their own comment
+                if (comment.AuthorId == userId)
+                {
+                    return Json(new { success = false, message = "You cannot report your own comment" });
+                }
+
+                // Create report
+                var report = new Report
+                {
+                    ReporterId = userId,
+                    ContentId = commentId,
+                    ContentType = "Comment",
+                    Reason = reason,
+                    Status = "Pending",
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _context.Reports.AddAsync(report);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 }

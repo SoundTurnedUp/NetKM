@@ -152,6 +152,14 @@
                     background: #ffe8ed;
                 }
 
+            .post-action-btn.report-btn {
+                color: #ff9800;
+            }
+
+                .post-action-btn.report-btn:hover {
+                    background: #fff3e0;
+                }
+
         /* Modal Styles */
         .modal-overlay {
             display: none;
@@ -387,6 +395,21 @@
                 background: #ffe8ed;
             }
 
+        .modal-comment-report {
+            background: none;
+            border: none;
+            color: #ff9800;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+            .modal-comment-report:hover {
+                background: #fff3e0;
+            }
+
         .modal-actions {
             padding: 12px 16px;
             border-top: 1px solid #e4e6eb;
@@ -557,20 +580,16 @@
     {
         @foreach (var post in Model)
         {
-            <div class="post-header">
-                <a href="/Home/Profile?userId=@post.AuthorId">
+            <div class="post-card">
+                <div class="post-header">
                     <img src="@(post.Author.ProfilePictureURL ?? "/images/default-avatar.png")"
                          alt="Avatar"
                          class="post-avatar" />
-                </a>
-
-                <div class="post-author-info">
-                    <a href="/Home/Profile?userId=@post.AuthorId" class="author-link">
+                    <div class="post-author-info">
                         <h3>@post.Author.FirstName @post.Author.LastName</h3>
-                    </a>
-                    <span class="post-time">@post.CreatedAt.ToString("dd MMM, yyyy")</span>
+                        <span class="post-time">@post.CreatedAt.ToString("MMM dd, yyyy")</span>
+                    </div>
                 </div>
-            </div>
 
                 @if (!string.IsNullOrEmpty(post.Content))
                 {
@@ -597,7 +616,14 @@
                             🗑️ Delete
                         </button>
                     }
+                    else
+                    {
+                        <button class="post-action-btn report-btn" onclick="reportPost('@post.PostId')">
+                            ⚠️ Report
+                        </button>
+                    }
                 </div>
+            </div>
         }
     }
 </div>
@@ -800,6 +826,10 @@
                             ? `<button class="modal-comment-delete" onclick="deleteComment('${comment.commentId}')">Delete</button>`
                             : '';
 
+                        const reportBtn = !comment.canDelete
+                            ? `<button class="modal-comment-report" onclick="reportComment('${comment.commentId}')">Report</button>`
+                            : '';
+
                         const commentHtml = `
                             <div class="modal-comment" id="comment-${comment.commentId}">
                                 <a href="/Home/Profile?userId=${comment.authorId}">
@@ -810,6 +840,7 @@
                                     <div class="modal-comment-author">
                                         <a href="/Home/Profile?userId=${comment.authorId}">${comment.authorName}</a>
                                         ${deleteBtn}
+                                        ${reportBtn}
                                     </div>
                                     <div class="modal-comment-text">${comment.content}</div>
                                     <div class="modal-comment-time">${comment.timeAgo}</div>
@@ -911,5 +942,49 @@
                 closePostModal();
             }
         });
+
+        // Report post
+        function reportPost(postId) {
+            const reason = prompt('Please provide a reason for reporting this post (optional):');
+
+            // If user cancelled, don't proceed
+            if (reason === null) return;
+
+            $.post('/Home/ReportPost', {
+                postId: postId,
+                reason: reason || 'No reason provided',
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            }, function(data) {
+                if (data.success) {
+                    alert('Post reported successfully. Our moderation team will review it.');
+                } else {
+                    alert('Failed to report post: ' + (data.message || 'Unknown error'));
+                }
+            }).fail(function() {
+                alert('Failed to report post. Please try again.');
+            });
+        }
+
+        // Report comment
+        function reportComment(commentId) {
+            const reason = prompt('Please provide a reason for reporting this comment (optional):');
+
+            // If user cancelled, don't proceed
+            if (reason === null) return;
+
+            $.post('/Home/ReportComment', {
+                commentId: commentId,
+                reason: reason || 'No reason provided',
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            }, function(data) {
+                if (data.success) {
+                    alert('Comment reported successfully. Our moderation team will review it.');
+                } else {
+                    alert('Failed to report comment: ' + (data.message || 'Unknown error'));
+                }
+            }).fail(function() {
+                alert('Failed to report comment. Please try again.');
+            });
+        }
     </script>
 }
